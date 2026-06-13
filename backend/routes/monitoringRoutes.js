@@ -12,13 +12,14 @@ require("../controllers/monitoringController");
 
 router.get(
   "/",
+  auth,
   controller.getMonitoring
 );
 
 router.get(
   "/logs",
   auth,
-  monitoringController.getLogs
+  controller.getLogs
 );
 
 module.exports =

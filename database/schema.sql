@@ -11,19 +11,20 @@ id INT PRIMARY KEY AUTO_INCREMENT,
 project_name VARCHAR(255),
 location VARCHAR(255),
 budget DECIMAL(12,2)
+status ENUM('Planning', 'Active', 'Completed', 'Delayed') DEFAULT 'Planning'
 );
 
 CREATE TABLE tasks(
 id INT PRIMARY KEY AUTO_INCREMENT,
 task_name VARCHAR(255),
 assigned_to VARCHAR(255),
-status VARCHAR(50)
+status ENUM('Completed', 'In Progress', 'Pending') DEFAULT 'Pending'
 );
 
 CREATE TABLE approvals(
 id INT PRIMARY KEY AUTO_INCREMENT,
 task_name VARCHAR(255),
-status VARCHAR(50),
+status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
