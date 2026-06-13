@@ -74,7 +74,7 @@ function Approvals({ onNav, onLogout, user }) {
           <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>Loading approvals…</div>
         ) : items.length === 0 ? (
           <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-            No approval requests yet. {user?.role === "ADMIN" ? "Use "Generate Demo Data" on the Dashboard." : ""}
+            No approval requests yet. {user?.role === "ADMIN" ? "Use 'Generate Demo Data' on the Dashboard." : ""}
           </div>
         ) : (
           <table className="bs-table">

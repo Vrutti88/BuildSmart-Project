@@ -105,7 +105,7 @@ function Projects({ onNav, onLogout, user }) {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} style={{ textAlign: "center", color: "#94a3b8", padding: 32 }}>
-                  No projects found. {role === "ADMIN" ? "Use "Generate Demo Data" on the Dashboard." : ""}
+                  No projects found. {role === "ADMIN" ? "Use 'Generate Demo Data' on the Dashboard." : ""}
                 </td></tr>
               ) : filtered.map((p, i) => (
                 <tr key={p.id}>

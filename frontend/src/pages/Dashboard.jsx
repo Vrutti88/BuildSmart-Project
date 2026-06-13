@@ -134,7 +134,7 @@ function Dashboard({ onNav, onLogout, user }) {
           </div>
           {projects.length === 0 ? (
             <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-              No projects yet.{user?.role === "ADMIN" ? " Click "Generate Demo Data" above to populate." : ""}
+              No projects yet.{user?.role === "ADMIN" ? " Click 'Generate Demo Data' above to populate." : ""}
             </div>
           ) : (
             <table className="bs-table">

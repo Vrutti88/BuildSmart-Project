@@ -105,7 +105,7 @@ function Tasks({ onNav, onLogout, user }) {
             <tbody>
               {tasks.length === 0 ? (
                 <tr><td colSpan={4} style={{ textAlign: "center", color: "#94a3b8", padding: 32 }}>
-                  No tasks yet. {role === "ADMIN" ? "Use "Generate Demo Data" on the Dashboard." : ""}
+                  No tasks yet. {role === "ADMIN" ? "Use 'Generate Demo Data' on the Dashboard." : ""}
                 </td></tr>
               ) : tasks.map((t, i) => (
                 <tr key={t.id}>
