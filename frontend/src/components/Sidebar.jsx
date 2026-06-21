@@ -108,7 +108,8 @@ function Sidebar({ onNav }) {
                   "/projects",
                   "/tasks",
                   "/approvals",
-                  "/reports"
+                  "/reports",
+                  "/analytics"
                 ].includes(item.to);
 
               if (user?.role === "ENGINEER")

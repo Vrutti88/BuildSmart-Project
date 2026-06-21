@@ -1,28 +1,8 @@
 # 🏗️ BuildSmart — Construction Project Cloud
 
-> **B.Tech CSE 2024–2028 | AWS Case Study | Semester IV | ITM Skills University**
 > Domain: Construction Project Management
 
 A full-stack cloud web application deployed on **AWS** for managing construction projects, tasks, approvals, analytics, and infrastructure monitoring — built to demonstrate real-world cloud engineering concepts.
-
----
-
-## 📋 Table of Contents
-
-1. [Project Overview](#-project-overview)
-2. [AWS Architecture](#-aws-architecture)
-3. [Tech Stack](#-tech-stack)
-4. [Project Structure](#-project-structure)
-5. [Database Schema](#-database-schema)
-6. [API Endpoints](#-api-endpoints)
-7. [Role-Based Access](#-role-based-access)
-8. [Local Setup](#-local-setup)
-9. [AWS Deployment](#-aws-deployment)
-10. [Docker](#-docker)
-11. [Seed Demo Data](#-seed-demo-data)
-12. [Environment Variables](#-environment-variables)
-13. [Default Login Credentials](#-default-login-credentials)
-14. [Screenshots](#-screenshots)
 
 ---
 
@@ -41,6 +21,40 @@ The application demonstrates **AWS cloud infrastructure** including EC2, RDS MyS
 
 ---
 
+## 📌 System Architecture
+
+```
+                     Users
+                       │
+                       ▼
+                 AWS EC2 Instance
+            ┌─────────────────────┐
+            │       Nginx         │
+            └─────────┬───────────┘
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+    React Frontend         Node.js Backend
+                                  │
+                                  ▼
+                             AWS RDS MySQL
+                            (Project Data)
+                                  │
+                                  ▼
+                        Backup Script + Cron Job
+                                  │
+                                  ▼
+                            AWS S3 Bucket
+                         (Database Backups)
+
+  EC2 Instance + Application Logs
+               │
+               ▼
+        AWS CloudWatch
+     (Monitoring & Alerts)
+```
+---
+
 ## ☁️ AWS Architecture
 
 ```
@@ -48,13 +62,13 @@ Region: ap-south-1 (Mumbai)
 
 VPC: 10.0.0.0/16
 ├── Public Subnet: 10.0.1.0/24
-│   └── EC2 t3.medium
+│   └── EC2 m7i-flex.large
 │       ├── Nginx (reverse proxy, port 80)
 │       ├── Node.js API (PM2, port 5000)
 │       └── React Frontend (built & served by Nginx)
 │
 └── Private Subnet: 10.0.2.0/24
-    └── RDS MySQL db.t3.small
+    └── RDS MySQL db.t4g.micro
         └── Database: buildsmart
 
 S3 Bucket: buildsmart-assets
@@ -67,8 +81,7 @@ CloudWatch
 
 IAM
 ├── buildsmart-admin     (AdministratorAccess)
-├── buildsmart-developer (EC2 + RDS + S3 access)
-└── buildsmart-readonly  (ReadOnlyAccess)
+├── Role: buildmart-backup    (To create databse backup)
 ```
 
 ### Security Groups
@@ -79,6 +92,7 @@ IAM
 | buildsmart-ec2-sg  | 80   | 0.0.0.0/0       | HTTP (Nginx)           |
 | buildsmart-ec2-sg  | 443  | 0.0.0.0/0       | HTTPS                  |
 | buildsmart-ec2-sg  | 5000 | 0.0.0.0/0       | Node.js API (dev)      |
+| buildsmart-ec2-sg  | 5173 | 0.0.0.0/0       | ReactJS API (dev)      |
 | buildsmart-rds-sg  | 3306 | buildsmart-ec2-sg | MySQL (EC2 only)     |
 
 ---
@@ -87,14 +101,13 @@ IAM
 
 | Layer      | Technology                                |
 |------------|-------------------------------------------|
-| Frontend   | React 19, Vite, Tailwind CSS, Chart.js    |
-| Backend    | Node.js, Express 5                        |
+| Frontend   | React 19, Vite, Tailwind CSS              |
+| Backend    | Node.js, Express.js                       |
 | Database   | MySQL 8 (AWS RDS)                         |
 | Auth       | JWT (JSON Web Tokens) + bcrypt            |
 | Cloud      | AWS EC2, RDS, S3, VPC, CloudWatch, IAM    |
 | Container  | Docker, Docker Compose                    |
 | Web Server | Nginx (reverse proxy)                     |
-| Process    | PM2 (Node.js process manager)             |
 | HTTP Client| Axios                                     |
 
 ---
@@ -127,6 +140,7 @@ BuildSmart/
 │   │   ├── monitoringRoutes.js
 │   │   └── seedRoutes.js
 │   ├── app.js                     # Express app setup
+│   ├── Dockerfile                 # Node.js backend image
 │   ├── server.js                  # Entry point
 │   ├── .env                       # Environment variables
 │   └── package.json
@@ -153,13 +167,13 @@ BuildSmart/
 │   │   ├── App.jsx                # Routes + auth state
 │   │   ├── main.jsx
 │   │   └── index.css              # Global styles
+│   ├── Dockerfile                 # Node.js frontend image
 │   └── package.json
 │
 ├── database/
 │   └── schema.sql                 # Table definitions + user seed
 │
 ├── docker/
-│   ├── Dockerfile                 # Node.js backend image
 │   └── docker-compose.yml         # Backend container config
 │
 └── scripts/
@@ -240,11 +254,13 @@ reports      (id, report_name, created_at)
 | View Dashboard       | ✅    | ✅      | ✅       |
 | Generate Demo Data   | ✅    | ❌      | ❌       |
 | Add Projects         | ✅    | ✅      | ❌       |
+| View Projects        | ✅    | ✅      | ✅       |
 | Add Tasks            | ✅    | ✅      | ❌       |
+| View Tasks           | ✅    | ✅      | ✅       |
 | Approve / Reject     | ✅    | ✅      | ❌       |
-| View Analytics       | ✅    | ✅      | ✅       |
-| View Reports         | ✅    | ✅      | ✅       |
-| View Monitoring      | ✅    | ✅      | ✅       |
+| View Analytics       | ✅    | ✅      | ❌       |
+| View Reports         | ✅    | ✅      | ❌       |
+| View Monitoring      | ✅    | ❌      | ❌       |
 
 ---
 
@@ -260,12 +276,8 @@ reports      (id, report_name, created_at)
 
 ```bash
 # If using Git
-git clone https://github.com/YOUR_USERNAME/buildsmart.git
-cd buildsmart
-
-# Or just unzip the provided archive
-unzip BuildSmart_Final.zip
-cd BS_out
+git clone https://github.com/Vrutti88/BuildSmart-Project.git
+cd BuildSmart-Project
 ```
 
 ### 2. Set up the database
@@ -344,7 +356,7 @@ Open your browser and go to `http://localhost:5173` → you should see the login
 
 ```
 AMI:            Ubuntu Server 24.04 LTS
-Instance type:  t3.medium
+Instance type:  m7i-flex.large
 Key pair:       buildsmart-key.pem  (save this!)
 VPC:            buildsmart-vpc (create new, 10.0.0.0/16)
 Subnet:         Public subnet (10.0.1.0/24)
@@ -367,9 +379,6 @@ sudo apt update && sudo apt upgrade -y
 # Node.js 20
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs nginx git
-
-# PM2
-sudo npm install -g pm2
 ```
 
 ### Step 4 — Create RDS MySQL
@@ -379,8 +388,8 @@ Engine:         MySQL 8.0
 Template:       Free tier
 DB identifier:  buildsmart-db
 Username:       admin
-Password:       BuildSmart@123
-Instance:       db.t3.micro
+Password:       buildsmart123
+Instance:       db.t4g.micro
 VPC:            buildsmart-vpc
 Subnet:         Private subnet
 Security group: buildsmart-rds-sg (allow 3306 from EC2 only)
@@ -406,7 +415,7 @@ Set in `.env`:
 PORT=5000
 DB_HOST=<YOUR_RDS_ENDPOINT>
 DB_USER=admin
-DB_PASSWORD=BuildSmart@123
+DB_PASSWORD=buildsmart123
 DB_NAME=buildsmart
 JWT_SECRET=buildsmartsecret
 ```
@@ -415,30 +424,7 @@ JWT_SECRET=buildsmartsecret
 
 ```bash
 # From EC2 (MySQL client is installed)
-mysql -h <RDS_ENDPOINT> -u admin -pBuildSmart@123 buildsmart < /home/ubuntu/buildsmart/database/schema.sql
-```
-
-### Step 7 — Start backend with PM2
-
-```bash
-cd /home/ubuntu/buildsmart/backend
-npm install
-pm2 start server.js --name buildsmart-api
-pm2 save
-pm2 startup   # run the command it outputs
-```
-
-### Step 8 — Build and serve frontend
-
-```bash
-cd /home/ubuntu/buildsmart/frontend
-
-# Update API URL to use your EC2 IP
-# Edit src/services/api.js → baseURL: "http://<EC2_IP>/api"
-
-npm install
-npm run build
-sudo cp -r dist/* /var/www/html/
+mysql -h <RDS_ENDPOINT> -u admin -pbuildsmart123 buildsmart < /home/ubuntu/buildsmart/database/schema.sql
 ```
 
 ### Step 9 — Configure Nginx
@@ -519,22 +505,13 @@ aws cloudwatch put-metric-alarm \
 cd docker
 
 # Build image
-docker build -f Dockerfile -t buildsmart-api ../backend
+docker compose build --no-cache
 
 # Run with docker-compose (update DB_HOST in docker-compose.yml first)
 docker-compose up -d
 
 # Check status
 docker ps
-docker logs buildsmart-api
-```
-
-### Push to Docker Hub
-
-```bash
-docker login
-docker tag buildsmart-api YOUR_DOCKERHUB_USERNAME/buildsmart-api:v1
-docker push YOUR_DOCKERHUB_USERNAME/buildsmart-api:v1
 ```
 
 ---
@@ -566,55 +543,34 @@ After seeding, all pages — Projects, Tasks, Approvals, Analytics, Reports, Mon
 | `PORT`            | Backend server port                | `5000`                                     |
 | `DB_HOST`         | MySQL host (RDS endpoint or localhost) | `buildsmart-db.xxxx.ap-south-1.rds.amazonaws.com` |
 | `DB_USER`         | MySQL username                     | `admin`                                    |
-| `DB_PASSWORD`     | MySQL password                     | `BuildSmart@123`                           |
+| `DB_PASSWORD`     | MySQL password                     | `buildsmart123`                           |
 | `DB_NAME`         | MySQL database name                | `buildsmart`                               |
 | `JWT_SECRET`      | Secret key for JWT signing         | `buildsmartsecret`                         |
 | `AWS_REGION`      | AWS region (for CloudWatch SDK)    | `ap-south-1`                               |
-| `EC2_INSTANCE_ID` | EC2 instance ID (for monitoring)   | `i-0123456789abcdef0`                      |
+| `EC2_INSTANCE_ID` | EC2 instance ID (for monitoring)   | `i-06681018284640292`                      |
 
 ---
 
 ## 🔑 Default Login Credentials
 
-> Password for all accounts: **`admin123`**
-
 | Role     | Email                       | Password  | Permissions                          |
 |----------|-----------------------------|-----------|--------------------------------------|
-| ADMIN    | admin@buildsmart.com        | admin123  | Full access + Generate Demo Data     |
-| MANAGER  | manager@buildsmart.com      | admin123  | View all, add projects/tasks, approve |
-| ENGINEER | engineer@buildsmart.com     | admin123  | View only (no add/approve access)    |
-
----
-
-## 📸 Screenshots
-
-> Take screenshots of the following pages for your submission:
-
-| Page        | What to show                                      |
-|-------------|---------------------------------------------------|
-| Login       | Login screen with BuildSmart branding             |
-| Dashboard   | Stats cards populated after seeding               |
-| Projects    | Table with 12 seeded projects                     |
-| Tasks       | Table with 20 tasks and status badges             |
-| Approvals   | Pending queue with Approve/Reject buttons         |
-| Analytics   | Bar, Pie and Line charts with real data           |
-| Reports     | KPI cards and progress bars                       |
-| Monitoring  | CPU/memory gauges + system log from audit_logs    |
+| ADMIN    | admin@buildsmart.com        | 123456  | Full access + Generate Demo Data     |
+| MANAGER  | manager@buildsmart.com      | 123456  | View all, add projects/tasks, approve |
+| ENGINEER | engineer@buildsmart.com     | 123456  | View only (no add/approve access)    |
 
 ---
 
 ## 💰 AWS Cost Estimate (ap-south-1 / Mumbai)
 
-| Service           | Type            | Monthly (USD) | Monthly (INR) |
-|-------------------|-----------------|---------------|---------------|
-| EC2 t3.medium     | On-Demand       | ~$30.37       | ~₹2,530       |
-| RDS db.t3.micro   | Single-AZ MySQL | ~$12.41       | ~₹1,035       |
-| S3 (50 GB)        | Standard        | ~$1.15        | ~₹96          |
-| Data Transfer     | 10 GB out       | ~$1.00        | ~₹83          |
-| CloudWatch        | Basic + alarms  | ~$2.00        | ~₹167         |
-| **Total**         |                 | **~$46.93**   | **~₹3,911**   |
-
-> 💡 **Free Tier Tip:** Use `t2.micro` EC2 + `db.t3.micro` RDS for the first 12 months at no cost under AWS Free Tier.
+| Service            | Type            | Monthly (USD) | Monthly (INR) |
+|--------------------|-----------------|---------------|---------------|
+| EC2 m7i-flex.large | On-Demand       | ~$30.37       | ~₹2,530       |
+| RDS db.t4g.micro   | Single-AZ MySQL | ~$12.41       | ~₹1,035       |
+| S3 (50 GB)         | Standard        | ~$1.15        | ~₹96          |
+| Data Transfer      | 10 GB out       | ~$1.00        | ~₹83          |
+| CloudWatch         | Basic + alarms  | ~$2.00        | ~₹167         |
+| **Total**          |                 | **~$46.93**   | **~₹3,911**   |
 
 ---
 
@@ -630,11 +586,14 @@ After seeding, all pages — Projects, Tasks, Approvals, Analytics, Reports, Mon
 | Identity & Access          | IAM users and roles with scoped permissions  |
 | Monitoring & Alerting      | CloudWatch metrics + SNS email alerts        |
 | Linux Administration       | User/group management, cron jobs, systemctl  |
-| Process Management         | PM2 for Node.js, Nginx as reverse proxy      |
 | Containerisation           | Docker image + docker-compose deployment     |
 | Automation                 | Shell script for DB backup, cron scheduling  |
 | Role-Based Access          | JWT + middleware enforcing ADMIN/MANAGER/ENGINEER roles |
 
 ---
 
-*Built for ITM Skills University · AWS Case Study · Semester IV · Construction Project Management*
+## Author
+
+**Vrutti Patil**
+
+GitHub: https://github.com/Vrutti88/BuildSmart-Project.git

@@ -74,7 +74,7 @@ function AppInner() {
       <Route
         path="/analytics"
         element={
-          <RoleRoute roles={["ADMIN"]}>
+          <RoleRoute roles={["ADMIN", "MANAGER"]}>
             <Analytics {...shared} />
           </RoleRoute>
         }
