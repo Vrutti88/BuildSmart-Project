@@ -17,7 +17,7 @@ BuildSmart is a **centralized cloud platform** for construction companies to man
 - **Reports** — executive-level summary of all platform KPIs
 - **Monitoring** — live EC2 CPU/memory/disk stats and system audit logs
 
-The application demonstrates **AWS cloud infrastructure** including EC2, RDS MySQL, S3, VPC, CloudWatch, IAM, and Docker containerisation — as required by the case study.
+The application demonstrates **AWS cloud infrastructure** including EC2, RDS MySQL/MariaDB, S3, VPC, CloudWatch, IAM, and Docker containerisation — as required by the case study.
 
 ---
 
@@ -37,7 +37,7 @@ The application demonstrates **AWS cloud infrastructure** including EC2, RDS MyS
     React Frontend         Node.js Backend
                                   │
                                   ▼
-                             AWS RDS MySQL
+                           AWS RDS MariaDB
                             (Project Data)
                                   │
                                   ▼
@@ -68,7 +68,7 @@ VPC: 10.0.0.0/16
 │       └── React Frontend (built & served by Nginx)
 │
 └── Private Subnet: 10.0.2.0/24
-    └── RDS MySQL db.t4g.micro
+    └── RDS MariaDB db.t4g.micro
         └── Database: buildsmart
 
 S3 Bucket: buildsmart-assets
@@ -86,14 +86,14 @@ IAM
 
 ### Security Groups
 
-| Group              | Port | Source          | Purpose               |
-|--------------------|------|-----------------|------------------------|
-| buildsmart-ec2-sg  | 22   | Your IP         | SSH access             |
-| buildsmart-ec2-sg  | 80   | 0.0.0.0/0       | HTTP (Nginx)           |
-| buildsmart-ec2-sg  | 443  | 0.0.0.0/0       | HTTPS                  |
-| buildsmart-ec2-sg  | 5000 | 0.0.0.0/0       | Node.js API (dev)      |
-| buildsmart-ec2-sg  | 5173 | 0.0.0.0/0       | ReactJS API (dev)      |
-| buildsmart-rds-sg  | 3306 | buildsmart-ec2-sg | MySQL (EC2 only)     |
+| Group              | Port | Source          | Purpose                    |
+|--------------------|------|-----------------|----------------------------|
+| buildsmart-ec2-sg  | 22   | Your IP         | SSH access                 |
+| buildsmart-ec2-sg  | 80   | 0.0.0.0/0       | HTTP (Nginx)               |
+| buildsmart-ec2-sg  | 443  | 0.0.0.0/0       | HTTPS                      |
+| buildsmart-ec2-sg  | 5000 | 0.0.0.0/0       | Node.js API (dev)          |
+| buildsmart-ec2-sg  | 5173 | 0.0.0.0/0       | ReactJS API (dev)          |
+| buildsmart-rds-sg  | 3306 | buildsmart-ec2-sg | MySQL/MariaDB (EC2 only) |
 
 ---
 
@@ -103,7 +103,7 @@ IAM
 |------------|-------------------------------------------|
 | Frontend   | React 19, Vite, Tailwind CSS              |
 | Backend    | Node.js, Express.js                       |
-| Database   | MySQL 8 (AWS RDS)                         |
+| Database   | MariaDB (AWS RDS)                         |
 | Auth       | JWT (JSON Web Tokens) + bcrypt            |
 | Cloud      | AWS EC2, RDS, S3, VPC, CloudWatch, IAM    |
 | Container  | Docker, Docker Compose                    |
@@ -118,7 +118,7 @@ IAM
 BuildSmart/
 ├── backend/
 │   ├── config/
-│   │   └── db.js                  # MySQL connection pool
+│   │   └── db.js                  # MySQL/MariaDB connection pool
 │   ├── controllers/
 │   │   ├── authController.js      # Login, JWT generation
 │   │   ├── projectController.js   # CRUD for projects
@@ -269,7 +269,7 @@ reports      (id, report_name, created_at)
 ### Prerequisites
 
 - Node.js v20+
-- MySQL 8 running locally (or RDS endpoint)
+- MySQL/MariaDB running locally (or RDS endpoint)
 - Git
 
 ### 1. Clone / Extract the project
@@ -298,7 +298,7 @@ cp .env .env.local   # optional backup
 nano .env            # or open in your editor
 ```
 
-Update `.env` with your local MySQL credentials:
+Update `.env` with your local MySQL/MariaDB credentials:
 
 ```env
 PORT=5000
@@ -381,10 +381,10 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs nginx git
 ```
 
-### Step 4 — Create RDS MySQL
+### Step 4 — Create RDS MariaDB
 
 ```
-Engine:         MySQL 8.0
+Engine:         MariaDB
 Template:       Free tier
 DB identifier:  buildsmart-db
 Username:       admin
@@ -423,7 +423,7 @@ JWT_SECRET=buildsmartsecret
 ### Step 6 — Import schema to RDS
 
 ```bash
-# From EC2 (MySQL client is installed)
+# From EC2 (MariaDB client is installed)
 mysql -h <RDS_ENDPOINT> -u admin -pbuildsmart123 buildsmart < /home/ubuntu/buildsmart/database/schema.sql
 ```
 
@@ -541,10 +541,10 @@ After seeding, all pages — Projects, Tasks, Approvals, Analytics, Reports, Mon
 | Variable          | Description                        | Example                                    |
 |-------------------|------------------------------------|--------------------------------------------|
 | `PORT`            | Backend server port                | `5000`                                     |
-| `DB_HOST`         | MySQL host (RDS endpoint or localhost) | `buildsmart-db.xxxx.ap-south-1.rds.amazonaws.com` |
-| `DB_USER`         | MySQL username                     | `admin`                                    |
-| `DB_PASSWORD`     | MySQL password                     | `buildsmart123`                           |
-| `DB_NAME`         | MySQL database name                | `buildsmart`                               |
+| `DB_HOST`         | MariaDB host (RDS endpoint or localhost) | `buildsmart-db.xxxx.ap-south-1.rds.amazonaws.com` |
+| `DB_USER`         | MariaDB username                     | `admin`                                    |
+| `DB_PASSWORD`     | MariaDB password                     | `buildsmart123`                           |
+| `DB_NAME`         | MariaDB database name                | `buildsmart`                               |
 | `JWT_SECRET`      | Secret key for JWT signing         | `buildsmartsecret`                         |
 | `AWS_REGION`      | AWS region (for CloudWatch SDK)    | `ap-south-1`                               |
 | `EC2_INSTANCE_ID` | EC2 instance ID (for monitoring)   | `i-06681018284640292`                      |
@@ -563,14 +563,14 @@ After seeding, all pages — Projects, Tasks, Approvals, Analytics, Reports, Mon
 
 ## 💰 AWS Cost Estimate (ap-south-1 / Mumbai)
 
-| Service            | Type            | Monthly (USD) | Monthly (INR) |
-|--------------------|-----------------|---------------|---------------|
-| EC2 m7i-flex.large | On-Demand       | ~$30.37       | ~₹2,530       |
-| RDS db.t4g.micro   | Single-AZ MySQL | ~$12.41       | ~₹1,035       |
-| S3 (50 GB)         | Standard        | ~$1.15        | ~₹96          |
-| Data Transfer      | 10 GB out       | ~$1.00        | ~₹83          |
-| CloudWatch         | Basic + alarms  | ~$2.00        | ~₹167         |
-| **Total**          |                 | **~$46.93**   | **~₹3,911**   |
+| Service            | Type              | Monthly (USD) | Monthly (INR) |
+|--------------------|-------------------|---------------|---------------|
+| EC2 m7i-flex.large | On-Demand         | ~$30.37       | ~₹2,530       |
+| RDS db.t4g.micro   | Single-AZ MariaDB | ~$12.41       | ~₹1,035       |
+| S3 (50 GB)         | Standard          | ~$1.15        | ~₹96          |
+| Data Transfer      | 10 GB out         | ~$1.00        | ~₹83          |
+| CloudWatch         | Basic + alarms    | ~$2.00        | ~₹167         |
+| **Total**          |                   | **~$46.93**   | **~₹3,911**   |
 
 ---
 
@@ -579,7 +579,7 @@ After seeding, all pages — Projects, Tasks, Approvals, Analytics, Reports, Mon
 | Concept                    | Implementation                               |
 |----------------------------|----------------------------------------------|
 | Compute                    | EC2 t3.medium with Ubuntu 24.04              |
-| Managed Database           | RDS MySQL 8 in private subnet                |
+| Managed Database           | RDS MariaDB in private subnet                |
 | Object Storage             | S3 bucket for backups                        |
 | Networking                 | Custom VPC, public/private subnets           |
 | Firewall                   | Security Groups with least-privilege rules   |
